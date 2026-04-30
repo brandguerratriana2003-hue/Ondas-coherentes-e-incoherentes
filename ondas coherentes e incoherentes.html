@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ondas Coherentes e Incoherentes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0e17;
+    --panel: #111827;
+    --panel2: #1a2235;
+    --border: #2a3a55;
+    --accent1: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --accent4: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #e2e8f0;
+    --danger: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: linear-gradient(90deg, #0a0e17 0%, #111827 100%);
+  }
+
+  header .badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    background: var(--accent2);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+  }
+
+  header h1 {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  header h1 span { color: var(--accent1); }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  .tab-btn {
+    padding: 16px 28px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .tab-btn.active {
+    color: var(--accent1);
+    border-bottom-color: var(--accent1);
+  }
+
+  .tab-btn:hover:not(.active) { color: var(--text); }
+
+  .tab-content { display: none; padding: 28px 32px; }
+  .tab-content.active { display: block; }
+
+  /* ---- GRID LAYOUTS ---- */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  .card h3 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent1);
+    margin-bottom: 16px;
+  }
+
+  /* ---- CONTROLS ---- */
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .control-row label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 90px;
+  }
+
+  .control-row input[type=range] {
+    flex: 1;
+    accent-color: var(--accent1);
+    height: 4px;
+    cursor: pointer;
+  }
+
+  .control-row input[type=number] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .control-row input[type=number]:focus { border-color: var(--accent1); }
+
+  .control-row .val {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--accent4);
+    min-width: 70px;
+    text-align: right;
+  }
+
+  /* ---- CANVAS ---- */
+  canvas {
+    width: 100%;
+    border-radius: 6px;
+    background: #060b14;
+    display: block;
+  }
+
+  /* ---- BUTTONS ---- */
+  .btn {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 9px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--accent1);
+    color: #000;
+  }
+
+  .btn-primary:hover { background: #00b8d9; }
+
+  .btn-secondary {
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover { border-color: var(--accent1); color: var(--accent1); }
+
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+  }
+
+  .btn-danger:hover { background: #c0392b; }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  /* ---- WAVE COLOR DOTS ---- */
+  .dot1 { color: var(--accent1); }
+  .dot2 { color: var(--accent2); }
+  .dotR { color: var(--accent3); }
+
+  /* ---- CALCULATOR SECTION ---- */
+  .calc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .calc-block {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .calc-block h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent3);
+    margin-bottom: 12px;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .input-row label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 110px;
+  }
+
+  .input-row input[type=number] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 6px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .input-row input[type=number]:focus { border-color: var(--accent1); }
+
+  .input-row .unit {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    min-width: 45px;
+  }
+
+  .result-display {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 10px;
+  }
+
+  .result-display .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid #1a2235;
+  }
+
+  .result-display .result-row:last-child { border-bottom: none; }
+
+  .result-display .rk {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .result-display .rv {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent4);
+  }
+
+  /* ---- INCOHERENT SUM ---- */
+  .inco-area {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+
+  .inco-area h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent2);
+    margin-bottom: 12px;
+  }
+
+  .sources-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+
+  .source-tag {
+    background: var(--bg);
+    border: 1px solid var(--accent2);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .source-tag button {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .sum-result {
+    background: var(--bg);
+    border: 1px solid var(--accent2);
+    border-radius: 6px;
+    padding: 12px 16px;
+    text-align: center;
+  }
+
+  .sum-result .big-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+
+  .sum-result .big-lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ---- SECTION LABEL ---- */
+  .section-lbl {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* responsive */
+  @media(max-width:900px) {
+    .grid-2, .calc-grid { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media(max-width:600px) {
+    .tabs { overflow-x: auto; }
+    .tab-btn { padding: 12px 16px; font-size: 11px; }
+    .tab-content { padding: 16px; }
+    .grid-3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Ondas Coherentes e Incoherentes</h1>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('coherent')">Ondas Coherentes</button>
+  <button class="tab-btn" onclick="switchTab('calculator')">Calculadora Acustica</button>
+</div>
+
+<!-- ============================================================ -->
+<!--  TAB 1: ONDAS COHERENTES                                     -->
+<!-- ============================================================ -->
+<div id="tab-coherent" class="tab-content active">
+  <div class="grid-2" style="margin-bottom:20px;">
+
+    <!-- Tono 1 -->
+    <div class="card">
+      <h3><span class="dot1">&#9679;</span> Tono 1</h3>
+      <div class="control-row">
+        <label>Frecuencia</label>
+        <input type="number" id="f1" min="20" max="20000" value="440" step="1" oninput="updateWave()">
+        <span class="val">Hz</span>
+      </div>
+      <div class="control-row">
+        <label>Amplitud</label>
+        <input type="number" id="a1" min="0" max="120" value="1" step="0.01" oninput="updateWave()">
+        <span class="val">Pa</span>
+      </div>
+      <div class="control-row">
+        <label>Fase</label>
+        <input type="number" id="p1" min="0" max="360" value="0" step="1" oninput="updateWave()">
+        <span class="val">°</span>
+      </div>
+    </div>
+
+    <!-- Tono 2 -->
+    <div class="card">
+      <h3><span class="dot2">&#9679;</span> Tono 2</h3>
+      <div class="control-row">
+        <label>Frecuencia</label>
+        <input type="number" id="f2" min="20" max="20000" value="440" step="1" oninput="updateWave()">
+        <span class="val">Hz</span>
+      </div>
+      <div class="control-row">
+        <label>Amplitud</label>
+        <input type="number" id="a2" min="0" max="120" value="1" step="0.01" oninput="updateWave()">
+        <span class="val">Pa</span>
+      </div>
+      <div class="control-row">
+        <label>Fase</label>
+        <input type="number" id="p2" min="0" max="360" value="0" step="1" oninput="updateWave()">
+        <span class="val">°</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Canvases -->
+  <div class="grid-2" style="margin-bottom:20px;">
+    <div class="card">
+      <h3>Dominio del Tiempo</h3>
+      <canvas id="canvasTime" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h3>Espectro de Frecuencia (FFT)</h3>
+      <canvas id="canvasFreq" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Info coherente + botones -->
+  <div class="grid-3">
+    <div class="card">
+      <h3>Resultado Coherente</h3>
+      <div class="result-display" style="margin-bottom:0;">
+        <div class="result-row"><span class="rk">|P_total| (Pa)</span><span class="rv" id="r_ptotal">-</span></div>
+        <div class="result-row"><span class="rk">SPL combinado</span><span class="rv" id="r_splc">- dB</span></div>
+        <div class="result-row"><span class="rk">Diferencia de fase</span><span class="rv" id="r_phase">-°</span></div>
+        <div class="result-row"><span class="rk">Interferencia</span><span class="rv" id="r_inter">-</span></div>
+      </div>
+    </div>
+    <div class="card" style="grid-column:span 2;">
+      <h3>Control de Audio</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Reproduce los tonos usando la Web Audio API. Usa auriculares para apreciar mejor la suma coherente.</p>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="playTone1()">&#9654; Tono 1</button>
+        <button class="btn btn-secondary" onclick="playTone2()">&#9654; Tono 2</button>
+        <button class="btn btn-secondary" onclick="playBoth()">&#9654; Suma Coherente</button>
+        <button class="btn btn-danger" onclick="stopAll()">&#9646;&#9646; Detener</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  TAB 2: CALCULADORA ACUSTICA                                 -->
+<!-- ============================================================ -->
+<div id="tab-calculator" class="tab-content">
+
+  <div class="section-lbl">Parametros de entrada</div>
+
+  <div class="calc-grid">
+
+    <!-- Bloque: Intensidad -->
+    <div class="calc-block">
+      <h4>Intensidad y Nivel de Intensidad</h4>
+      <div class="input-row">
+        <label>Presion rms (P)</label>
+        <input type="number" id="c_prms" value="1" min="0" step="any" oninput="calcAll()">
+        <span class="unit">Pa</span>
+      </div>
+      <div class="input-row">
+        <label>Distancia (r)</label>
+        <input type="number" id="c_r" value="1" min="0.001" step="any" oninput="calcAll()">
+        <span class="unit">m</span>
+      </div>
+      <div class="result-display">
+        <div class="result-row"><span class="rk">Intensidad I</span><span class="rv" id="r_I">-</span></div>
+        <div class="result-row"><span class="rk">Nivel de Intensidad LI</span><span class="rv" id="r_LI">-</span></div>
+      </div>
+    </div>
+
+    <!-- Bloque: Presion sonora -->
+    <div class="calc-block">
+      <h4>Presion y Nivel de Presion Sonora (SPL)</h4>
+      <div class="input-row">
+        <label>Presion rms (P)</label>
+        <input type="number" id="c_prms2" value="1" min="0" step="any" oninput="calcAll()">
+        <span class="unit">Pa</span>
+      </div>
+      <p style="font-size:10px;color:var(--muted);margin:6px 0;">P_ref = 20 μPa (en aire)</p>
+      <div class="result-display">
+        <div class="result-row"><span class="rk">Presion eficaz P_rms</span><span class="rv" id="r_prms_out">-</span></div>
+        <div class="result-row"><span class="rk">SPL (Lp)</span><span class="rv" id="r_SPL">-</span></div>
+      </div>
+    </div>
+
+    <!-- Bloque: Potencia -->
+    <div class="calc-block">
+      <h4>Potencia y Nivel de Potencia</h4>
+      <div class="input-row">
+        <label>Intensidad I</label>
+        <input type="number" id="c_I_w" value="0.0796" min="0" step="any" oninput="calcAll()">
+        <span class="unit">W/m²</span>
+      </div>
+      <div class="input-row">
+        <label>Distancia (r)</label>
+        <input type="number" id="c_r_w" value="1" min="0.001" step="any" oninput="calcAll()">
+        <span class="unit">m</span>
+      </div>
+      <div class="result-display">
+        <div class="result-row"><span class="rk">Potencia W</span><span class="rv" id="r_W">-</span></div>
+        <div class="result-row"><span class="rk">Nivel de potencia LW</span><span class="rv" id="r_LW">-</span></div>
+      </div>
+    </div>
+
+    <!-- Bloque: Impedancia -->
+    <div class="calc-block">
+      <h4>Impedancia Acustica</h4>
+      <div class="input-row">
+        <label>Frecuencia (f)</label>
+        <input type="number" id="c_f_z" value="1000" min="1" step="any" oninput="calcAll()">
+        <span class="unit">Hz</span>
+      </div>
+      <div class="input-row">
+        <label>Distancia (r)</label>
+        <input type="number" id="c_r_z" value="1" min="0.001" step="any" oninput="calcAll()">
+        <span class="unit">m</span>
+      </div>
+      <p style="font-size:10px;color:var(--muted);margin:4px 0;">ρ₀c₀ = 415 Rayls (aire 20°C)</p>
+      <div class="result-display">
+        <div class="result-row"><span class="rk">|Z| (Rayls)</span><span class="rv" id="r_Z">-</span></div>
+        <div class="result-row"><span class="rk">% de ρ₀c₀</span><span class="rv" id="r_Zpct">-</span></div>
+        <div class="result-row"><span class="rk">Resistencia Re(Z)</span><span class="rv" id="r_ReZ">-</span></div>
+        <div class="result-row"><span class="rk">Reactancia Im(Z)</span><span class="rv" id="r_ImZ">-</span></div>
+        <div class="result-row"><span class="rk">Angulo θ</span><span class="rv" id="r_theta">-</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Suma incoherente -->
+  <div class="inco-area">
+    <h4>Suma Energetica de Niveles de Presion Sonora (Fuentes Incoherentes)</h4>
+
+    <div class="input-row" style="margin-bottom:10px;">
+      <label>Nivel SPL (dB)</label>
+      <input type="number" id="inco_input" value="70" min="0" step="0.1">
+      <span class="unit">dB</span>
+      <button class="btn btn-secondary" onclick="addSource()" style="margin-left:8px;">+ Agregar</button>
+    </div>
+    <div class="sources-list" id="sources_list">
+      <!-- tags aqui -->
+    </div>
+    <button class="btn btn-primary" onclick="calcInco()">Calcular Suma</button>
+    <button class="btn btn-secondary" onclick="clearSources()" style="margin-left:8px;">Limpiar</button>
+    <div class="sum-result" style="margin-top:14px;">
+      <div class="big-lbl">Nivel total de presion sonora</div>
+      <div class="big-val" id="inco_result">-- dB</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================================================================ -->
+<script>
+/* =========================================================
+   AUDIO ENGINE
+   ========================================================= */
+let audioCtx = null;
+let activeSources = [];
+
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function stopAll() {
+  activeSources.forEach(n => { try { n.stop(); } catch(e){} });
+  activeSources = [];
+}
+
+function makeTone(freq, gain, phase) {
+  const ctx = getCtx();
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  g.gain.value = gain * 0.2;
+  osc.connect(g);
+  g.connect(ctx.destination);
+  // phase workaround: we can't set phase in WebAudio directly, but for pure tones it's imperceptible
+  osc.start();
+  return osc;
+}
+
+function playTone1() {
+  stopAll();
+  const f = +document.getElementById('f1').value;
+  const a = +document.getElementById('a1').value;
+  activeSources.push(makeTone(f, a, 0));
+}
+
+function playTone2() {
+  stopAll();
+  const f = +document.getElementById('f2').value;
+  const a = +document.getElementById('a2').value;
+  activeSources.push(makeTone(f, a, 0));
+}
+
+function playBoth() {
+  stopAll();
+  const ctx = getCtx();
+  const f1 = +document.getElementById('f1').value;
+  const a1 = +document.getElementById('a1').value;
+  const f2 = +document.getElementById('f2').value;
+  const a2 = +document.getElementById('a2').value;
+  const ph2 = +document.getElementById('p2').value * Math.PI / 180;
+
+  const osc1 = ctx.createOscillator(); const g1 = ctx.createGain();
+  osc1.type = 'sine'; osc1.frequency.value = f1; g1.gain.value = a1 * 0.15;
+  osc1.connect(g1); g1.connect(ctx.destination); osc1.start();
+
+  const osc2 = ctx.createOscillator(); const g2 = ctx.createGain();
+  osc2.type = 'sine'; osc2.frequency.value = f2; g2.gain.value = a2 * 0.15;
+  osc2.connect(g2); g2.connect(ctx.destination); osc2.start();
+
+  activeSources.push(osc1, osc2);
+}
+
+/* =========================================================
+   WAVEFORM DRAWING
+   ========================================================= */
+function updateWave() {
+  const f1 = Math.max(20, +document.getElementById('f1').value || 440);
+  const a1Raw = +document.getElementById('a1').value || 1;
+  const a1 = Math.min(120, Math.max(0, a1Raw));
+  if (a1Raw > 120) document.getElementById('a1').value = 120;
+  const p1 = +document.getElementById('p1').value || 0;
+  const f2 = Math.max(20, +document.getElementById('f2').value || 440);
+  const a2Raw = +document.getElementById('a2').value || 1;
+  const a2 = Math.min(120, Math.max(0, a2Raw));
+  if (a2Raw > 120) document.getElementById('a2').value = 120;
+  const p2 = +document.getElementById('p2').value || 0;
+
+  drawTime(f1, a1, p1, f2, a2, p2);
+  drawFreq(f1, a1, f2, a2);
+  updateCoherentInfo(a1, p1, a2, p2);
+}
+
+function drawTime(f1, a1, ph1, f2, a2, ph2) {
+  const canvas = document.getElementById('canvasTime');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = canvas.offsetWidth * dpr;
+  canvas.height = 230 * dpr;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+
+  const mL = 54 * dpr, mB = 32 * dpr, mT = 18 * dpr, mR = 12 * dpr;
+  const plotW = w - mL - mR;
+  const plotH = h - mT - mB;
+
+  ctx.fillStyle = '#060b14';
+  ctx.fillRect(0, 0, w, h);
+
+  const maxF = Math.max(f1, f2);
+  const minF = Math.min(f1, f2);
+  const T = 1 / minF;      // 1 ciclo completo de la frecuencia más baja
+  const Tms = T * 1000;
+
+  const maxA = Math.max(a1, a2, a1 + a2, 0.001) * 1.1;
+  const scale = (plotH / 2 - 6) / maxA;
+  const mid = mT + plotH / 2;
+
+  // grid
+  ctx.strokeStyle = '#1a2235'; ctx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) {
+    const y = mT + plotH / 4 * i;
+    ctx.beginPath(); ctx.moveTo(mL, y); ctx.lineTo(mL + plotW, y); ctx.stroke();
+  }
+  for (let i = 0; i <= 8; i++) {
+    const x = mL + plotW / 8 * i;
+    ctx.beginPath(); ctx.moveTo(x, mT); ctx.lineTo(x, mT + plotH); ctx.stroke();
+  }
+
+  // ejes
+  ctx.strokeStyle = '#4a5a75'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(mL, mT); ctx.lineTo(mL, mT + plotH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(mL, mid); ctx.lineTo(mL + plotW, mid); ctx.stroke();
+
+  const fs = 9 * dpr;
+  ctx.font = `${fs}px Space Mono,monospace`;
+
+  // eje Y - etiquetas
+  ctx.fillStyle = '#e2e8f0'; ctx.textAlign = 'right';
+  [-maxA, -maxA/2, 0, maxA/2, maxA].forEach(v => {
+    const py = mid - v * scale;
+    ctx.fillText((v / 1.1).toFixed(2), mL - 5, py + fs * 0.35);
+    ctx.beginPath(); ctx.strokeStyle = '#4a5a75'; ctx.lineWidth = 1;
+    ctx.moveTo(mL - 4, py); ctx.lineTo(mL, py); ctx.stroke();
+  });
+
+  // eje Y - título rotado
+  ctx.save();
+  ctx.translate(8 * dpr, mT + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = '#e2e8f0'; ctx.textAlign = 'center';
+  ctx.font = `${fs}px Space Mono,monospace`;
+  ctx.fillText('Presión (Pa)', 0, 0);
+  ctx.restore();
+
+  // eje X - 5 etiquetas bien espaciadas (0, T/4, T/2, 3T/4, T) * ciclos
+  ctx.fillStyle = '#e2e8f0'; ctx.textAlign = 'center';
+  ctx.font = `${fs}px Space Mono,monospace`;
+  const xTicks = 5;
+  for (let i = 0; i <= xTicks; i++) {
+    const tVal = (i / xTicks * Tms);
+    const label = tVal < 1 ? tVal.toFixed(2) : tVal.toFixed(1);
+    const x = mL + (i / xTicks) * plotW;
+    ctx.fillText(label, x, mT + plotH + 18 * dpr);
+    ctx.beginPath(); ctx.strokeStyle = '#4a5a75'; ctx.lineWidth = 1;
+    ctx.moveTo(x, mT + plotH); ctx.lineTo(x, mT + plotH + 5); ctx.stroke();
+  }
+
+  // eje X - título
+  ctx.fillStyle = '#e2e8f0'; ctx.textAlign = 'center';
+  ctx.font = `${fs}px Space Mono,monospace`;
+  ctx.fillText('Tiempo (ms)', mL + plotW / 2, h - 3 * dpr);
+
+  // ondas T1 y T2 primero (debajo), con transparencia y línea delgada
+  function drawWave(fq, amp, phDeg, color) {
+    const phRad = phDeg * Math.PI / 180;
+    ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 1.2 * dpr;
+    for (let i = 0; i <= plotW; i++) {
+      const t = (i / plotW) * T;
+      const y = amp * Math.sin(2 * Math.PI * fq * t + phRad);
+      const py = mid - y * scale;
+      i === 0 ? ctx.moveTo(mL + i, py) : ctx.lineTo(mL + i, py);
+    }
+    ctx.stroke();
+  }
+
+  drawWave(f1, a1, ph1, '#00d4ff77');
+  drawWave(f2, a2, ph2, '#7c3aed77');
+
+  // suma encima, más gruesa y opaca
+  const ph1r = ph1 * Math.PI / 180;
+  const ph2r = ph2 * Math.PI / 180;
+  ctx.beginPath(); ctx.strokeStyle = '#10b981dd'; ctx.lineWidth = 2 * dpr;
+  for (let i = 0; i <= plotW; i++) {
+    const t = (i / plotW) * T;
+    const y = a1 * Math.sin(2 * Math.PI * f1 * t + ph1r) + a2 * Math.sin(2 * Math.PI * f2 * t + ph2r);
+    const py = mid - y * scale;
+    i === 0 ? ctx.moveTo(mL + i, py) : ctx.lineTo(mL + i, py);
+  }
+  ctx.stroke();
+
+  // leyenda
+  ctx.font = `${9 * dpr}px Space Mono,monospace`;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#00d4ff'; ctx.fillText('T1', mL + 6, mT + 14 * dpr);
+  ctx.fillStyle = '#7c3aed'; ctx.fillText('T2', mL + 26 * dpr, mT + 14 * dpr);
+  ctx.fillStyle = '#10b981'; ctx.fillText('SUMA', mL + 48 * dpr, mT + 14 * dpr);
+}
+
+function drawFreq(f1, a1, f2, a2) {
+  const canvas = document.getElementById('canvasFreq');
+  const W = canvas.offsetWidth * window.devicePixelRatio || 600;
+  const H = 220 * window.devicePixelRatio || 220;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+
+  const mL = 52, mB = 28, mT = 20, mR = 10;
+  const plotW = w - mL - mR;
+  const plotH = h - mT - mB;
+
+  ctx.fillStyle = '#060b14';
+  ctx.fillRect(0, 0, w, h);
+
+  const maxFreqDisplay = 20000;
+  const maxAmp = Math.max(a1, a2, 0.001);
+  // Escala X ajustada: muestra hasta 1.5x la frecuencia más alta, máximo 20000
+  const visibleMax = Math.min(Math.max(f1, f2) * 1.5, 20000);
+
+  function freqToX(f) { return mL + (f / visibleMax) * plotW; }
+  function ampToY(a)  { return mT + plotH - (a / (maxAmp * 1.2)) * plotH; }
+
+  // grid
+  ctx.strokeStyle = '#1a2235'; ctx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) {
+    const y = mT + plotH / 4 * i;
+    ctx.beginPath(); ctx.moveTo(mL, y); ctx.lineTo(mL + plotW, y); ctx.stroke();
+  }
+
+  // ejes
+  ctx.strokeStyle = '#2a3a55'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(mL, mT); ctx.lineTo(mL, mT + plotH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(mL, mT + plotH); ctx.lineTo(mL + plotW, mT + plotH); ctx.stroke();
+
+  // etiquetas eje Y (Amplitud Pa)
+  ctx.fillStyle = '#e2e8f0';
+  ctx.textAlign = 'right';
+  ctx.font = `${9 * window.devicePixelRatio}px Space Mono,monospace`;
+  [0, 0.25, 0.5, 0.75, 1.0].forEach(frac => {
+    const val = frac * maxAmp;
+    const py = mT + plotH - frac * plotH * (1 / 1.2);
+    ctx.fillText(val.toFixed(2), mL - 4, py + 3);
+    ctx.beginPath(); ctx.strokeStyle = '#2a3a55';
+    ctx.moveTo(mL - 3, py); ctx.lineTo(mL, py); ctx.stroke();
+  });
+
+  // etiqueta eje Y rotada
+  ctx.save();
+  ctx.translate(10 * window.devicePixelRatio, mT + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = '#e2e8f0';
+  ctx.textAlign = 'center';
+  ctx.font = `${9 * window.devicePixelRatio}px Space Mono,monospace`;
+  ctx.fillText('Amplitud (Pa)', 0, 0);
+  ctx.restore();
+
+  // etiquetas eje X (Hz) - paso automático según rango visible
+  const rawStep = visibleMax / 5;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const freqStep = Math.ceil(rawStep / mag) * mag;
+  ctx.fillStyle = '#e2e8f0';
+  ctx.textAlign = 'center';
+  ctx.font = '9px Space Mono,monospace';
+  for (let f = 0; f <= visibleMax; f += freqStep) {
+    const x = freqToX(f);
+    const label = f >= 1000 ? (f/1000)+'k' : f+'';
+    ctx.fillText(label, x, mT + plotH + 18);
+    ctx.beginPath(); ctx.strokeStyle = '#2a3a55';
+    ctx.moveTo(x, mT + plotH); ctx.lineTo(x, mT + plotH + 4); ctx.stroke();
+  }
+
+  // etiqueta eje X
+  ctx.fillStyle = '#e2e8f0';
+  ctx.textAlign = 'center';
+  ctx.fillText('Frecuencia (Hz)', mL + plotW / 2, h - 2);
+
+  function drawBar(fq, amp, color) {
+    const x = freqToX(fq);
+    const y = ampToY(amp);
+    const bw = Math.max(4, plotW * 0.012);
+    ctx.fillStyle = color;
+    ctx.fillRect(x - bw / 2, y, bw, mT + plotH - y);
+    ctx.fillStyle = color;
+    ctx.font = `${10 * window.devicePixelRatio}px Space Mono,monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillText(fq + ' Hz', x, y - 6);
+  }
+
+  if (Math.abs(f1 - f2) < 2) {
+    drawBar(f1, a1 + a2, '#10b981');
+  } else {
+    drawBar(f1, a1, '#00d4ff');
+    drawBar(f2, a2, '#7c3aed');
+  }
+}
+
+function updateCoherentInfo(a1, ph1deg, a2, ph2deg) {
+  const pref = 20e-6;
+  const ph1 = ph1deg * Math.PI / 180;
+  const ph2 = ph2deg * Math.PI / 180;
+
+  // SPL individual (amplitud de pico -> rms = A/sqrt(2))
+  const Prms1 = a1 / Math.sqrt(2);
+  const Prms2 = a2 / Math.sqrt(2);
+  const L1 = Prms1 > 0 ? 20 * Math.log10(Prms1 / pref) : -Infinity;
+
+  // Suma vectorial coherente (amplitudes de pico)
+  const re = a1 * Math.cos(ph1) + a2 * Math.cos(ph2);
+  const im = a1 * Math.sin(ph1) + a2 * Math.sin(ph2);
+  const Ptotal = Math.sqrt(re*re + im*im); // amplitud de pico total
+  const PrmsTotal = Ptotal / Math.sqrt(2);
+  const splC = PrmsTotal > 0 ? 20 * Math.log10(PrmsTotal / pref) : -Infinity;
+
+  const deltaph = Math.abs(ph2deg - ph1deg);
+  const deltaL = isFinite(splC) && isFinite(L1) ? (splC - L1) : 0;
+
+  let inter = '';
+  if (deltaph < 30) inter = 'Constructiva';
+  else if (deltaph > 150) inter = 'Destructiva';
+  else inter = 'Parcial';
+
+  document.getElementById('r_ptotal').textContent = Ptotal.toFixed(3) + ' Pa';
+  document.getElementById('r_splc').textContent = isFinite(splC) ? splC.toFixed(1) + ' dB' : '-∞ dB';
+  document.getElementById('r_phase').textContent = deltaph.toFixed(0) + '°';
+  document.getElementById('r_inter').textContent = inter;
+}
+
+/* =========================================================
+   CALCULADORA ACUSTICA
+   ========================================================= */
+const rho0 = 1.21;    // kg/m3
+const c0 = 343;       // m/s
+const Z0 = 415;       // Rayls (aire 20°C)
+const Iref = 1e-12;
+const Pref = 20e-6;
+const Wref = 1e-12;
+
+function calcAll() {
+  // -- Intensidad --
+  const Prms = +document.getElementById('c_prms').value;
+  const r = +document.getElementById('c_r').value || 1;
+  const I = (Prms * Prms) / (2 * Z0);
+  const LI = I > 0 ? 10 * Math.log10(I / Iref) : -Infinity;
+  document.getElementById('r_I').textContent = I.toExponential(3) + ' W/m²';
+  document.getElementById('r_LI').textContent = isFinite(LI) ? LI.toFixed(2) + ' dB' : '-∞ dB';
+
+  // -- Presion / SPL --
+  const Prms2 = +document.getElementById('c_prms2').value;
+  const SPL = Prms2 > 0 ? 20 * Math.log10(Prms2 / Pref) : -Infinity;
+  document.getElementById('r_prms_out').textContent = Prms2.toFixed(4) + ' Pa';
+  document.getElementById('r_SPL').textContent = isFinite(SPL) ? SPL.toFixed(2) + ' dB' : '-∞ dB';
+
+  // -- Potencia --
+  const I_w = +document.getElementById('c_I_w').value;
+  const r_w = +document.getElementById('c_r_w').value || 1;
+  const W = I_w * 4 * Math.PI * r_w * r_w;
+  const LW = W > 0 ? 10 * Math.log10(W / Wref) : -Infinity;
+  document.getElementById('r_W').textContent = W.toExponential(3) + ' W';
+  document.getElementById('r_LW').textContent = isFinite(LW) ? LW.toFixed(2) + ' dB' : '-∞ dB';
+
+  // -- Impedancia esferica --
+  const f_z = +document.getElementById('c_f_z').value || 1000;
+  const r_z = +document.getElementById('c_r_z').value || 1;
+  const omega = 2 * Math.PI * f_z;
+  const k = omega / c0;
+  const kr = k * r_z;
+  const kr2 = kr * kr;
+  const ReZ = Z0 * kr2 / (1 + kr2);
+  const ImZ = Z0 * kr / (1 + kr2);
+  const modZ = Z0 * kr / Math.sqrt(1 + kr2);
+  const theta = (1/Math.tan(kr)) ? Math.atan(1/(kr)) * 180 / Math.PI : 0;
+  document.getElementById('r_Z').textContent = modZ.toFixed(1) + ' Rayls';
+  document.getElementById('r_Zpct').textContent = (modZ / Z0 * 100).toFixed(1) + '%';
+  document.getElementById('r_ReZ').textContent = ReZ.toFixed(1) + ' Rayls';
+  document.getElementById('r_ImZ').textContent = ImZ.toFixed(1) + ' Rayls';
+  document.getElementById('r_theta').textContent = theta.toFixed(2) + '°';
+}
+
+/* =========================================================
+   SUMA INCOHERENTE
+   ========================================================= */
+let sources = [];
+
+function addSource() {
+  const val = +document.getElementById('inco_input').value;
+  if (!isNaN(val)) {
+    sources.push(val);
+    renderSources();
+  }
+}
+
+function removeSource(idx) {
+  sources.splice(idx, 1);
+  renderSources();
+  calcInco();
+}
+
+function clearSources() {
+  sources = [];
+  renderSources();
+  document.getElementById('inco_result').textContent = '-- dB';
+}
+
+function renderSources() {
+  const el = document.getElementById('sources_list');
+  el.innerHTML = '';
+  sources.forEach((v, i) => {
+    const tag = document.createElement('div');
+    tag.className = 'source-tag';
+    tag.innerHTML = `L${i+1} = ${v.toFixed(1)} dB <button onclick="removeSource(${i})">×</button>`;
+    el.appendChild(tag);
+  });
+}
+
+function calcInco() {
+  if (sources.length === 0) {
+    document.getElementById('inco_result').textContent = '-- dB';
+    return;
+  }
+  const sum = sources.reduce((acc, l) => acc + Math.pow(10, l/10), 0);
+  const total = 10 * Math.log10(sum);
+  document.getElementById('inco_result').textContent = total.toFixed(2) + ' dB';
+}
+
+/* =========================================================
+   TAB SWITCHER
+   ========================================================= */
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'coherent') setTimeout(updateWave, 50);
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+window.addEventListener('load', () => {
+  updateWave();
+  calcAll();
+  // add default sources for demo
+  sources = [70, 72, 68];
+  renderSources();
+  calcInco();
+
+  // Resize observer for responsive canvas
+  const ro = new ResizeObserver(() => requestAnimationFrame(() => updateWave()));
+  ro.observe(document.getElementById('canvasTime'));
+  ro.observe(document.getElementById('canvasFreq'));
+});
+</script>
+</body>
+</html>
