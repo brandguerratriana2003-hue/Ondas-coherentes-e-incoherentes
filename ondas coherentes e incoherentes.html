@@ -615,52 +615,78 @@ function stopAll() {
   activeSources = [];
 }
 
-function makeTone(freq, gain, phase) {
+function makeTone(freq, ampPa, phaseDeg) {
   const ctx = getCtx();
-  const osc = ctx.createOscillator();
-  const g = ctx.createGain();
-  osc.type = 'sine';
-  osc.frequency.value = freq;
-  g.gain.value = gain * 0.2;
-  osc.connect(g);
-  g.connect(ctx.destination);
-  // phase workaround: we can't set phase in WebAudio directly, but for pure tones it's imperceptible
-  osc.start();
-  return osc;
+  const sampleRate = ctx.sampleRate;
+  const duration = 2;
+  const numSamples = sampleRate * duration;
+  const buffer = ctx.createBuffer(1, numSamples, sampleRate);
+  const data = buffer.getChannelData(0);
+  const phRad = phaseDeg * Math.PI / 180;
+  // Referencia: 1 Pa = gain 0.1. Más Pa = más fuerte, proporcionalmente.
+  const gainPerPa = 0.1;
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / sampleRate;
+    data[i] = gainPerPa * ampPa * Math.sin(2 * Math.PI * freq * t + phRad);
+  }
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(ctx.destination);
+  source.start();
+  return source;
 }
 
 function playTone1() {
   stopAll();
   const f = +document.getElementById('f1').value;
-  const a = +document.getElementById('a1').value;
-  activeSources.push(makeTone(f, a, 0));
+  const a = Math.min(120, +document.getElementById('a1').value);
+  const ph = +document.getElementById('p1').value;
+  activeSources.push(makeTone(f, a, ph));
 }
 
 function playTone2() {
   stopAll();
   const f = +document.getElementById('f2').value;
-  const a = +document.getElementById('a2').value;
-  activeSources.push(makeTone(f, a, 0));
+  const a = Math.min(120, +document.getElementById('a2').value);
+  const ph = +document.getElementById('p2').value;
+  activeSources.push(makeTone(f, a, ph));
 }
 
 function playBoth() {
   stopAll();
   const ctx = getCtx();
   const f1 = +document.getElementById('f1').value;
-  const a1 = +document.getElementById('a1').value;
+  const a1 = Math.min(120, +document.getElementById('a1').value);
   const f2 = +document.getElementById('f2').value;
-  const a2 = +document.getElementById('a2').value;
+  const a2 = Math.min(120, +document.getElementById('a2').value);
+  const ph1 = +document.getElementById('p1').value * Math.PI / 180;
   const ph2 = +document.getElementById('p2').value * Math.PI / 180;
 
-  const osc1 = ctx.createOscillator(); const g1 = ctx.createGain();
-  osc1.type = 'sine'; osc1.frequency.value = f1; g1.gain.value = a1 * 0.15;
-  osc1.connect(g1); g1.connect(ctx.destination); osc1.start();
+  const sampleRate = ctx.sampleRate;
+  const duration = 2;
+  const numSamples = sampleRate * duration;
+  const buffer = ctx.createBuffer(1, numSamples, sampleRate);
+  const data = buffer.getChannelData(0);
 
-  const osc2 = ctx.createOscillator(); const g2 = ctx.createGain();
-  osc2.type = 'sine'; osc2.frequency.value = f2; g2.gain.value = a2 * 0.15;
-  osc2.connect(g2); g2.connect(ctx.destination); osc2.start();
+  // Misma referencia que makeTone: 1 Pa = 0.1 de gain
+  // La suma coherente en Pa se calcula muestra a muestra.
+  // Con 0°: suma = 2 Pa → gain 0.2 → suena el doble de fuerte
+  // Con 90°: suma = √2 Pa → gain 0.141 → suena +3 dB más que uno solo
+  // Con 180°: suma = 0 Pa → silencio
+  const gainPerPa = 0.1;
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / sampleRate;
+    data[i] = gainPerPa * (
+      a1 * Math.sin(2 * Math.PI * f1 * t + ph1) +
+      a2 * Math.sin(2 * Math.PI * f2 * t + ph2)
+    );
+  }
 
-  activeSources.push(osc1, osc2);
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(ctx.destination);
+  source.start();
+  activeSources.push(source);
 }
 
 /* =========================================================
